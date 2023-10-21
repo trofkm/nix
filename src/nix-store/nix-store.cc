@@ -33,9 +33,9 @@ using std::cin;
 using std::cout;
 
 
-typedef void (* Operation) (Strings opFlags, Strings opArgs);
+using Operation = void (* ) (Strings opFlags, Strings opArgs);
 
-
+// FIXME: Do not use global variables
 static Path gcRoot;
 static int rootNr = 0;
 static bool noOutput = false;
@@ -275,15 +275,56 @@ static void printTree(const StorePath & path,
             done);
     }
 }
+namespace{
+    enum class QueryType: uint
+    {
+        qOutputs,
+        qRequisites,
+        qReferences,
+        qReferrers,
+        qReferrersClosure,
+        qDeriver,
+        qValidDerivers,
+        qBinding,
+        qHash,
+        qSize,
+        qTree,
+        qGraph,
+        qGraphML,
+        qResolve,
+        qRoots,
+        qUseOutput,
+        qForceRealise,
+        qIncludeOutputs
+    };
+
+    static std::variant<QueryType> matchQueryType(const std::string_view& i){
+        if (i == "--outputs") return QueryType::qOutputs;
+        else if (i == "--requisites" || i == "-R") return QueryType::qRequisites;
+        else if (i == "--references") return QueryType::qReferences;
+        else if (i == "--referrers" || i == "--referers") return QueryType::qReferrers;
+        else if (i == "--referrers-closure" || i == "--referers-closure") return QueryType::qReferrersClosure;
+        else if (i == "--deriver" || i == "-d") return QueryType::qDeriver;
+        else if (i == "--valid-derivers") return QueryType::qValidDerivers;
+        else if (i == "--binding" || i == "-b") return QueryType::qBinding;
+        else if (i == "--hash") return QueryType::qHash;
+        else if (i == "--size") return QueryType::qSize;
+        else if (i == "--tree") return QueryType::qTree;
+        else if (i == "--graph") return QueryType::qGraph;
+        else if (i == "--graphml") return QueryType::qGraphML;
+        else if (i == "--resolve") return QueryType::qResolve;
+        else if (i == "--roots") return QueryType::qRoots;
+        else if (i == "--use-output" || i == "-u") return QueryType::qUseOutput;
+        else if (i == "--force-realise" || i == "--force-realize" || i == "-f") return QueryType::qForceRealise;
+        else if (i == "--include-outputs") return QueryType::qIncludeOutputs;
+        else return {};
+    }
+}
 
 
 /* Perform various sorts of queries. */
 static void opQuery(Strings opFlags, Strings opArgs)
 {
-    enum QueryType
-        { qOutputs, qRequisites, qReferences, qReferrers
-        , qReferrersClosure, qDeriver, qValidDerivers, qBinding, qHash, qSize
-        , qTree, qGraph, qGraphML, qResolve, qRoots };
     std::optional<QueryType> query;
     bool useOutput = false;
     bool includeOutputs = false;
@@ -292,42 +333,35 @@ static void opQuery(Strings opFlags, Strings opArgs)
 
     for (auto & i : opFlags) {
         std::optional<QueryType> prev = query;
-        if (i == "--outputs") query = qOutputs;
-        else if (i == "--requisites" || i == "-R") query = qRequisites;
-        else if (i == "--references") query = qReferences;
-        else if (i == "--referrers" || i == "--referers") query = qReferrers;
-        else if (i == "--referrers-closure" || i == "--referers-closure") query = qReferrersClosure;
-        else if (i == "--deriver" || i == "-d") query = qDeriver;
-        else if (i == "--valid-derivers") query = qValidDerivers;
-        else if (i == "--binding" || i == "-b") {
-            if (opArgs.size() == 0)
-                throw UsageError("expected binding name");
-            bindingName = opArgs.front();
-            opArgs.pop_front();
-            query = qBinding;
+        query = matchQueryType(i);
+        if(!query){
+            throw UsageError("unknown flag '%1%'", i);
         }
-        else if (i == "--hash") query = qHash;
-        else if (i == "--size") query = qSize;
-        else if (i == "--tree") query = qTree;
-        else if (i == "--graph") query = qGraph;
-        else if (i == "--graphml") query = qGraphML;
-        else if (i == "--resolve") query = qResolve;
-        else if (i == "--roots") query = qRoots;
-        else if (i == "--use-output" || i == "-u") useOutput = true;
-        else if (i == "--force-realise" || i == "--force-realize" || i == "-f") forceRealise = true;
-        else if (i == "--include-outputs") includeOutputs = true;
-        else throw UsageError("unknown flag '%1%'", i);
+
+        std::visit(overloaded{
+           [&](const QueryType::qBinding& q)->void{
+               if (opArgs.size() == 0)
+                   throw UsageError("expected binding name");
+               bindingName = opArgs.front();
+               // I should check realization, if it should return popped element
+               opArgs.pop_front();
+           },
+           [&](const QueryType::qUseOutput& q)->void{ useOutput = true; },
+           [&](const QueryType::qForceRealise& q)->void{ forceRealise = true; },
+           [&](const QueryType::qIncludeOutputs& q)->void{ includeOutputs = true; }
+        });
+
         if (prev && prev != query)
             throw UsageError("query type '%1%' conflicts with earlier flag", i);
     }
 
-    if (!query) query = qOutputs;
+    if (!query) query = QueryType::qOutputs;
 
     RunPager pager;
 
     switch (*query) {
 
-        case qOutputs: {
+        case QueryType::qOutputs: {
             for (auto & i : opArgs) {
                 auto outputs = maybeUseOutputs(store->followLinksToStorePath(i), true, forceRealise);
                 for (auto & outputPath : outputs)
@@ -336,26 +370,26 @@ static void opQuery(Strings opFlags, Strings opArgs)
             break;
         }
 
-        case qRequisites:
-        case qReferences:
-        case qReferrers:
-        case qReferrersClosure: {
+        case QueryType::qRequisites:
+        case QueryType::qReferences:
+        case QueryType::qReferrers:
+        case QueryType::qReferrersClosure: {
             StorePathSet paths;
             for (auto & i : opArgs) {
                 auto ps = maybeUseOutputs(store->followLinksToStorePath(i), useOutput, forceRealise);
                 for (auto & j : ps) {
-                    if (query == qRequisites) store->computeFSClosure(j, paths, false, includeOutputs);
-                    else if (query == qReferences) {
+                    if (query == QueryType::qRequisites) store->computeFSClosure(j, paths, false, includeOutputs);
+                    else if (query == QueryType::qReferences) {
                         for (auto & p : store->queryPathInfo(j)->references)
                             paths.insert(p);
                     }
-                    else if (query == qReferrers) {
+                    else if (query == QueryType::qReferrers) {
                         StorePathSet tmp;
                         store->queryReferrers(j, tmp);
                         for (auto & i : tmp)
                             paths.insert(i);
                     }
-                    else if (query == qReferrersClosure) store->computeFSClosure(j, paths, true);
+                    else if (query == QueryType::qReferrersClosure) store->computeFSClosure(j, paths, true);
                 }
             }
             auto sorted = store->topoSortPaths(paths);
@@ -365,14 +399,14 @@ static void opQuery(Strings opFlags, Strings opArgs)
             break;
         }
 
-        case qDeriver:
+        case QueryType::qDeriver:
             for (auto & i : opArgs) {
                 auto info = store->queryPathInfo(store->followLinksToStorePath(i));
                 cout << fmt("%s\n", info->deriver ? store->printStorePath(*info->deriver) : "unknown-deriver");
             }
             break;
 
-        case qValidDerivers: {
+        case QueryType::qValidDerivers: {
             StorePathSet result;
             for (auto & i : opArgs) {
                 auto derivers = store->queryValidDerivers(store->followLinksToStorePath(i));
@@ -387,7 +421,7 @@ static void opQuery(Strings opFlags, Strings opArgs)
             break;
         }
 
-        case qBinding:
+        case QueryType::qBinding:
             for (auto & i : opArgs) {
                 auto path = useDeriver(store->followLinksToStorePath(i));
                 Derivation drv = store->derivationFromPath(path);
@@ -399,28 +433,28 @@ static void opQuery(Strings opFlags, Strings opArgs)
             }
             break;
 
-        case qHash:
-        case qSize:
+        case QueryType::qHash:
+        case QueryType::qSize:
             for (auto & i : opArgs) {
                 for (auto & j : maybeUseOutputs(store->followLinksToStorePath(i), useOutput, forceRealise)) {
                     auto info = store->queryPathInfo(j);
-                    if (query == qHash) {
+                    if (query == QueryType::qHash) {
                         assert(info->narHash.type == htSHA256);
                         cout << fmt("%s\n", info->narHash.to_string(HashFormat::Base32, true));
-                    } else if (query == qSize)
+                    } else if (query == QueryType::qSize)
                         cout << fmt("%d\n", info->narSize);
                 }
             }
             break;
 
-        case qTree: {
+        case QueryType::qTree: {
             StorePathSet done;
             for (auto & i : opArgs)
                 printTree(store->followLinksToStorePath(i), "", "", done);
             break;
         }
 
-        case qGraph: {
+        case QueryType::qGraph: {
             StorePathSet roots;
             for (auto & i : opArgs)
                 for (auto & j : maybeUseOutputs(store->followLinksToStorePath(i), useOutput, forceRealise))
@@ -429,7 +463,7 @@ static void opQuery(Strings opFlags, Strings opArgs)
             break;
         }
 
-        case qGraphML: {
+        case QueryType::qGraphML: {
             StorePathSet roots;
             for (auto & i : opArgs)
                 for (auto & j : maybeUseOutputs(store->followLinksToStorePath(i), useOutput, forceRealise))
@@ -438,13 +472,13 @@ static void opQuery(Strings opFlags, Strings opArgs)
             break;
         }
 
-        case qResolve: {
+        case QueryType::qResolve: {
             for (auto & i : opArgs)
                 cout << fmt("%s\n", store->printStorePath(store->followLinksToStorePath(i)));
             break;
         }
 
-        case qRoots: {
+        case QueryType::qRoots: {
             StorePathSet args;
             for (auto & i : opArgs)
                 for (auto & p : maybeUseOutputs(store->followLinksToStorePath(i), useOutput, forceRealise))
@@ -462,6 +496,11 @@ static void opQuery(Strings opFlags, Strings opArgs)
                         cout << fmt("%1% -> %2%\n", link, gcStore.printStorePath(target));
             break;
         }
+        // for now, it does not have any specific logic, but we can add it later here
+        case QueryType::qUseOutput:
+        case QueryType::qForceRealise:
+        case QueryType::qIncludeOutputs:
+            break;
 
         default:
             abort();
