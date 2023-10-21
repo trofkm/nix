@@ -77,11 +77,9 @@ struct CmdHashBase : Command
     {
         for (auto path : paths) {
 
-            std::unique_ptr<AbstractHashSink> hashSink;
-            if (modulus)
-                hashSink = std::make_unique<HashModuloSink>(ht, *modulus);
-            else
-                hashSink = std::make_unique<HashSink>(ht);
+            std::unique_ptr<AbstractHashSink> hashSink =
+                    modulus ? std::make_unique<HashModuloSink>(ht, *modulus) : hashSink = std::make_unique<HashSink>(ht);
+
 
             switch (mode) {
             case FileIngestionMethod::Flat:
