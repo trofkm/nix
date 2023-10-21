@@ -117,7 +117,7 @@ struct CmdBuild : InstallablesCommand, MixDryRun, MixJSON, MixProfile
     {
         if (dryRun) {
             std::vector<DerivedPath> pathsToBuild;
-
+            // can we parallel that operation?
             for (auto & i : installables)
                 for (auto & b : i->toDerivedPaths())
                     pathsToBuild.push_back(b.path);
@@ -157,7 +157,7 @@ struct CmdBuild : InstallablesCommand, MixDryRun, MixJSON, MixProfile
                 }, buildable.path.raw());
             }
         }
-
+// unnecessary copy
         BuiltPaths buildables2;
         for (auto & b : buildables)
             buildables2.push_back(b.path);
