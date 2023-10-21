@@ -15,6 +15,8 @@
 
 using namespace nix;
 
+using StringSet = std::set<std::string>;
+
 static auto cacheDir = Path{};
 
 Path resolveCacheFile(Path lib)
@@ -23,12 +25,13 @@ Path resolveCacheFile(Path lib)
     return cacheDir + "/" + lib;
 }
 
-std::set<std::string> readCacheFile(const Path & file)
+
+StringSet readCacheFile(const Path & file)
 {
-    return tokenizeString<std::set<std::string>>(readFile(file), "\n");
+    return tokenizeString<StringSet>(readFile(file), "\n");
 }
 
-std::set<std::string> runResolver(const Path & filename)
+StringSet runResolver(const Path & filename)
 {
     AutoCloseFD fd = open(filename.c_str(), O_RDONLY);
     if (!fd)
@@ -47,7 +50,7 @@ std::set<std::string> runResolver(const Path & filename)
         printError("file '%s' is too short for a MACH binary", filename);
         return {};
     }
-
+    // I think exist the more good way to map a file to a memory
     char* obj = (char*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd.get(), 0);
     if (!obj)
         throw SysError("mmapping '%s'", filename);
@@ -81,7 +84,7 @@ std::set<std::string> runResolver(const Path & filename)
     bool should_swap = magic == MH_CIGAM_64;
     ptrdiff_t cmd_offset = mach64_offset + sizeof(mach_header_64);
 
-    std::set<std::string> libs;
+    StringSet libs;
     for (uint32_t i = 0; i < DO_SWAP(should_swap, m_header->ncmds); i++) {
         load_command * cmd = (load_command *) (obj + cmd_offset);
         switch(DO_SWAP(should_swap, cmd->cmd)) {
@@ -110,9 +113,9 @@ Path resolveSymlink(const Path & path)
         : concatStrings(dirOf(path), "/", target);
 }
 
-std::set<std::string> resolveTree(const Path & path, PathSet & deps)
+StringSet resolveTree(const Path & path, PathSet & deps)
 {
-    std::set<std::string> results;
+    StringSet results;
     if (!deps.insert(path).second) return {};
     for (auto & lib : runResolver(path)) {
         results.insert(lib);
@@ -123,7 +126,7 @@ std::set<std::string> resolveTree(const Path & path, PathSet & deps)
     return results;
 }
 
-std::set<std::string> getPath(const Path & path)
+StringSet getPath(const Path & path)
 {
     if (hasPrefix(path, "/dev")) return {};
 
@@ -131,7 +134,7 @@ std::set<std::string> getPath(const Path & path)
     if (pathExists(cacheFile))
         return readCacheFile(cacheFile);
 
-    std::set<std::string> deps, paths;
+    StringSet deps, paths;
     paths.insert(path);
 
     Path nextPath(path);
