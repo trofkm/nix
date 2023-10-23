@@ -3,10 +3,11 @@
 #include <iostream>
 #include <optional>
 #include "serialise.hh"
+#include "compile-defined-variables.h"
 #include <sstream>
 
 namespace nix {
-
+// TODO: Jesus Christ who the hell made this bullshit
 const std::string nativeSystem = SYSTEM;
 
 void BaseError::addTrace(std::shared_ptr<AbstractPos> && e, hintformat hint, bool frame)

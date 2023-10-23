@@ -1357,7 +1357,7 @@ Derivation Derivation::fromJSON(
 
     res.platform = ensureType(valueAt(json, "system"), value_t::string);
     res.builder = ensureType(valueAt(json, "builder"), value_t::string);
-    res.args = ensureType(valueAt(json, "args"), value_t::array);
+    res.args = {ensureType(valueAt(json, "args"), value_t::array)};
     res.env = ensureType(valueAt(json, "env"), value_t::object);
 
     return res;

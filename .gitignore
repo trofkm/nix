@@ -144,3 +144,7 @@ result
 
 # clangd and possibly more
 .cache/
+
+# build
+build/
+cmake-build-*/
