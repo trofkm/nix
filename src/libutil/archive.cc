@@ -77,25 +77,25 @@ void SourceAccessor::dumpPath(
             /* If we're on a case-insensitive system like macOS, undo
                the case hack applied by restorePath(). */
             std::map<std::string, std::string> unhacked;
-            for (auto & i : readDirectory(path))
-                if (archiveSettings.useCaseHack) {
-                    std::string name(i.first);
-                    size_t pos = i.first.find(caseHackSuffix);
-                    if (pos != std::string::npos) {
-                        debug("removing case hack suffix from '%s'", path + i.first);
-                        name.erase(pos);
-                    }
-                    if (!unhacked.emplace(name, i.first).second)
-                        throw Error("file name collision in between '%s' and '%s'",
-                            (path + unhacked[name]),
-                            (path + i.first));
-                } else
-                    unhacked.emplace(i.first, i.first);
-
-            for (auto & i : unhacked)
-                if (filter((path + i.first).abs())) {
-                    sink << "entry" << "(" << "name" << i.first << "node";
-                    dump(path + i.second);
+            for (const auto & [first, _] : readDirectory(path)) {
+                if (!archiveSettings.useCaseHack) {
+                    unhacked.emplace(first, first);
+                    continue;
+                }
+                std::string name(first);
+                if (size_t pos = first.find(caseHackSuffix);
+                    pos != std::string::npos) {
+                    debug("removing case hack suffix from '%s'", path + first);
+                    name.erase(pos);
+                }
+                if (!unhacked.emplace(name, first).second)
+                  throw Error("file name collision in between '%s' and '%s'",
+                              (path + unhacked[name]), (path + first));
+            }
+            for (const auto & [first, second] : unhacked)
+                if (filter((path + first).abs())) {
+                    sink << "entry" << "(" << "name" << first << "node";
+                    dump(path + second);
                     sink << ")";
                 }
         }
