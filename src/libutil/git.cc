@@ -5,7 +5,7 @@
 namespace nix {
 namespace git {
 
-std::optional<LsRemoteRefLine> parseLsRemoteLine(std::string_view line)
+std::optional<LsRemoteRefLine> LsRemoteRefLine::fromString(std::string_view line)
 {
     const static std::regex line_regex("^(ref: *)?([^\\s]+)(?:\\t+(.*))?$");
     std::match_results<std::string_view::const_iterator> match;

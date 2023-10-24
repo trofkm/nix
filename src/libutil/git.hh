@@ -34,9 +34,15 @@ struct LsRemoteRefLine {
     Kind kind;
     std::string target;
     std::optional<std::string> reference;
+
+    /**
+     * @brief Construct LsRemoteRefLine from a string
+     * @param line input from `git ls-remote --symref`
+     * @return std::nullopt if something went wrong or LsRemoteRefLine
+     */
+    static std::optional<LsRemoteRefLine> fromString(std::string_view line);
 };
 
-std::optional<LsRemoteRefLine> parseLsRemoteLine(std::string_view line);
 
 }
 
