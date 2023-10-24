@@ -5,17 +5,17 @@
 namespace nix {
 namespace git {
 
-std::optional<LsRemoteRefLine> LsRemoteRefLine::fromString(std::string_view line)
+std::optional<RemoteRef> RemoteRef::fromString(std::string_view line)
 {
     const static std::regex line_regex("^(ref: *)?([^\\s]+)(?:\\t+(.*))?$");
     std::match_results<std::string_view::const_iterator> match;
     if (!std::regex_match(line.cbegin(), line.cend(), match, line_regex))
         return std::nullopt;
 
-    return LsRemoteRefLine {
+    return RemoteRef {
         .kind = match[1].length() == 0
-            ? LsRemoteRefLine::Kind::Object
-            : LsRemoteRefLine::Kind::Symbolic,
+            ? RemoteRef::Kind::Object
+            : RemoteRef::Kind::Symbolic,
         .target = match[2],
         .reference = match[3].length() == 0 ? std::nullopt : std::optional<std::string>{ match[3] }
     };

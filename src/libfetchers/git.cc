@@ -68,12 +68,12 @@ std::optional<std::string> readHead(const Path & path)
 
     std::string_view line = output;
     line = line.substr(0, line.find("\n"));
-    if (const auto parseResult = git::LsRemoteRefLine::fromString(line)) {
+    if (const auto parseResult = git::RemoteRef::fromString(line)) {
         switch (parseResult->kind) {
-            case git::LsRemoteRefLine::Kind::Symbolic:
+            case git::RemoteRef::Kind::Symbolic:
                 debug("resolved HEAD ref '%s' for repo '%s'", parseResult->target, path);
                 break;
-            case git::LsRemoteRefLine::Kind::Object:
+            case git::RemoteRef::Kind::Object:
                 debug("resolved HEAD rev '%s' for repo '%s'", parseResult->target, path);
                 break;
         }

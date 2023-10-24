@@ -26,7 +26,7 @@ namespace git {
  *
  *    where {target} is a commit id and {reference} is mandatory
  */
-struct LsRemoteRefLine {
+struct RemoteRef {
     enum struct Kind {
         Symbolic,
         Object
@@ -36,11 +36,11 @@ struct LsRemoteRefLine {
     std::optional<std::string> reference;
 
     /**
-     * @brief Construct LsRemoteRefLine from a string
+     * @brief Construct RemoteRef from a string
      * @param line input from `git ls-remote --symref`
-     * @return std::nullopt if something went wrong or LsRemoteRefLine
+     * @return std::nullopt if something went wrong or RemoteRef
      */
-    static std::optional<LsRemoteRefLine> fromString(std::string_view line);
+    static std::optional<RemoteRef> fromString(std::string_view line);
 };
 
 

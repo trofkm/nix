@@ -410,7 +410,7 @@ struct SourceHutInputScheme : GitArchiveInputScheme
             std::string line;
             getline(is, line);
 
-            auto remoteLine = git::LsRemoteRefLine::fromString(line);
+            auto remoteLine = git::RemoteRef::fromString(line);
             if (!remoteLine) {
                 throw BadURL("in '%d', couldn't resolve HEAD ref '%d'", input.to_string(), ref);
             }
@@ -427,7 +427,7 @@ struct SourceHutInputScheme : GitArchiveInputScheme
         std::string line;
         std::optional<std::string> id;
         while(!id && getline(is, line)) {
-            auto parsedLine = git::LsRemoteRefLine::fromString(line);
+            auto parsedLine = git::RemoteRef::fromString(line);
             if (parsedLine && parsedLine->reference && std::regex_match(*parsedLine->reference, refRegex))
                 id = parsedLine->target;
         }
