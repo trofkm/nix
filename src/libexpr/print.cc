@@ -63,16 +63,7 @@ printIdentifier(std::ostream & str, std::string_view s) {
         return str;
     }
 
-    char firstSymbol = s[0];
-    // Name can only begin with a letter or an underscore.
-    if (!((firstSymbol >= 'a' && firstSymbol <= 'z') ||
-          (firstSymbol >= 'A' && firstSymbol <= 'Z') || firstSymbol == '_')) {
-        printLiteralString(str, s);
-        return str;
-    }
-    // Name cannot contain prohibited symbols.
-    // We have already checked the first symbol above, so there's no need to check it again.
-    if (!std::all_of(std::begin(s) + 1, std::end(s), isValidSymbolChar)) {
+    if (!isVarName(s)) {
         printLiteralString(str, s);
         return str;
     }
@@ -81,14 +72,14 @@ printIdentifier(std::ostream & str, std::string_view s) {
     return str;
 }
 
-static bool isVarName(std::string_view s)
+static bool isValidVariableName(std::string_view s)
 {
     if (s.empty()) return false;
     if (isReservedKeyword(s)) return false;
     char firstSymbol = s[0];
-    // Name cannot begin with a digit or a special character.
-    if ((firstSymbol >= '0' && firstSymbol <= '9') || firstSymbol == '-' ||
-        firstSymbol == '\'')
+    // Name can only begin with a letter or an underscore.
+    if (!((firstSymbol >= 'a' && firstSymbol <= 'z') ||
+          (firstSymbol >= 'A' && firstSymbol <= 'Z') || firstSymbol == '_'))
         return false;
     // We have already checked the first symbol above, so there's no need to check it again.
     return std::all_of(std::begin(s) + 1, std::end(s), isValidSymbolChar);
@@ -96,7 +87,7 @@ static bool isVarName(std::string_view s)
 
 std::ostream &
 printAttributeName(std::ostream & str, std::string_view name) {
-    if (isVarName(name))
+    if (isValidVariableName(name))
         str << name;
     else
         printLiteralString(str, name);
