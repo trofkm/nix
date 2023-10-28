@@ -57,13 +57,15 @@ Work in progress. For now, you can use cmake to build nix, but you cannot build 
 
 if tests enabled:
 - `libgtest-dev`
+- `librapidcheck-dev`
+- `libgmock-dev`
 
 so the dependency installing script may look like this:
 ```bash
 sudo apt install -y libboost-context-dev libsqlite3-dev libssl-dev \
 libarchive-dev curl libcurl4-openssl-dev libedit-dev liblowdown-dev \
 libsodium-dev libbrotli-dev libcpuid-dev bison flex nlohmann-json3-dev \
-libreadline-dev libgtest-dev
+libreadline-dev libgtest-dev librapidcheck-dev libgmock-dev
 ```
 
 ### Checklist
