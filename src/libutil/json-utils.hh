@@ -3,6 +3,7 @@
 
 #include <nlohmann/json.hpp>
 #include <list>
+#include <optional>
 
 namespace nix {
 
