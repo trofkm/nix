@@ -1,0 +1,4 @@
+#pragma once
+
+static constexpr char CA_SQLITE_SCHEMA[] =  R"(@CA_SCHEMA@)";
+static constexpr char MAIN_SQLITE_SCHEMA[] = R"(@SCHEMA@)";

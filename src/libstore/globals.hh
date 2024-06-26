@@ -12,6 +12,8 @@
 
 #include <sys/types.h>
 
+#include "compile-defined-variables.h"
+
 namespace nix {
 
 typedef enum { smEnabled, smRelaxed, smDisabled } SandboxMode;

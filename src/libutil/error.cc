@@ -7,10 +7,11 @@
 #include <iostream>
 #include <optional>
 #include "serialise.hh"
+#include "compile-defined-variables.h"
 #include <sstream>
 
 namespace nix {
-
+// TODO: Jesus Christ who the hell made this bullshit
 void BaseError::addTrace(std::shared_ptr<Pos> && e, HintFmt hint, TracePrint print)
 {
     err.traces.push_front(Trace { .pos = std::move(e), .hint = hint, .print = print });

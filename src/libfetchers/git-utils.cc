@@ -723,7 +723,7 @@ struct GitExportIgnoreSourceAccessor : CachingFilteringSourceAccessor {
             opts.attr_commit_id = hashToOID(*rev);
             // TODO: test that gitattributes from global and system are not used
             //       (ie more or less: home and etc - both of them!)
-            opts.flags = GIT_ATTR_CHECK_INCLUDE_COMMIT | GIT_ATTR_CHECK_NO_SYSTEM;
+            opts.flags =  | GIT_ATTR_CHECK_NO_SYSTEM;
             return git_attr_get_ext(
                 &valueOut,
                 *repo,

@@ -161,5 +161,9 @@ result-*
 # clangd and possibly more
 .cache/
 
+# build
+build/
+cmake-build-*/
+
 # Mac OS
 .DS_Store

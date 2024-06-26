@@ -3,6 +3,8 @@
 
 #include <nlohmann/json.hpp>
 #include <list>
+#include <optional>
+
 #include <nlohmann/json_fwd.hpp>
 
 #include "types.hh"
