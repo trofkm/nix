@@ -26,9 +26,9 @@ nlohmann::json dumpRegisterInputSchemeInfo() {
     using nlohmann::json;
 
     auto res = json::object();
-
+    // TODO: why this does not with string_view?
     for (auto & [name, scheme] : *inputSchemes) {
-        auto & r = res[name] = json::object();
+        auto & r = res[name.data()] = json::object();
         r["allowedAttrs"] = scheme->allowedAttrs();
     }
 
