@@ -92,6 +92,7 @@ find_package(nlohmann_json 3 REQUIRED)
 
 if(BUILD_TESTS)
     find_package(GTest REQUIRED)
+    find_package(rapidcheck REQUIRED)
 endif()
 
 end_header()
@@ -100,9 +101,7 @@ end_header()
 # subdirectories
 
 if(BUILD_TESTS)
-    # TODO: here we must add the path to the tests
-    #    add_subdirectory(tests)
-    # For now I do not know how to organize test executables
+    # FIXME: test are not implemented yet due to high tests' code coupling
 endif()
 
 add_subdirectory(src)
