@@ -84,7 +84,6 @@ option(BUILD_DOCUMENTATION "Build documentation" ON)
 begin_header("Dependencies")
 
 find_package(Threads REQUIRED)
-find_package(Libgit2 1.41 REQUIRED)
 find_package(Boost 1.63.0 REQUIRED COMPONENTS context)
 find_package(SQLite3 3.37 REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -97,6 +96,10 @@ find_package(Brotli REQUIRED)
 find_package(cpuid REQUIRED)
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
+
+
+find_package(PkgConfig REQUIRED)
+pkg_search_module(libgit2 REQUIRED libgit2)
 # TODO: add cmake support for library gc https://www.linuxfromscratch.org/blfs/view/cvs/general/gc.html
 # TODO: downgrade the version
 find_package(nlohmann_json 3 REQUIRED)
