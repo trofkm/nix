@@ -59,6 +59,7 @@ Work in progress. For now, you can use cmake to build nix, but you cannot build 
 - `flex`
 - `nlohmann-json3-dev`
 - `libreadline-dev`
+- `libeditline-dev` [link](https://github.com/troglobit/editline/releases/download/1.17.1/editline-1.17.1.tar.xz)
 
 if tests enabled:
 - `libgtest-dev`
