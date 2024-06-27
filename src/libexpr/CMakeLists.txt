@@ -7,39 +7,10 @@ generate_inline_file(${CMAKE_CURRENT_SOURCE_DIR}/fetchurl.nix)
 
 end_header()
 
+file(GLOB libexpr_srcs "*.cc" "flake/*.cc" "primops/*.cc" "value/*.cc")
 
 add_library(libexpr STATIC
-        attr-set.cc
-        function-trace.cc
-        json-to-value.cc
-        paths.cc
-        lexer-tab.cc
-        parser-tab.cc
-        print.cc
-        attr-path.cc
-        eval-cache.cc
-        eval-settings.cc
-        eval.cc
-        get-drvs.cc
-        nixexpr.cc
-        primops.cc
-        search-path.cc
-        value-to-json.cc
-        value-to-xml.cc
-# flake
-        flake/config.cc
-        flake/flake.cc
-        flake/flakeref.cc
-        flake/lockfile.cc
-        flake/url-name.cc
-# primops
-        primops/fromTOML.cc
-        primops/context.cc
-        primops/fetchClosure.cc
-        primops/fetchMercurial.cc
-        primops/fetchTree.cc
-# value
-        value/context.cc
+        ${libexpr_srcs}
 )
 
 target_include_directories(libexpr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -48,7 +19,7 @@ target_include_directories(libexpr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOUR
     ${CMAKE_CURRENT_SOURCE_DIR}/value
 )
 
-target_link_libraries(libexpr PUBLIC libutil libstore libfetchers Boost::context Threads::Threads gc)
+target_link_libraries(libexpr PUBLIC libutil libstore libmain libfetchers Boost::context Threads::Threads gc)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(libexpr PUBLIC dl)
